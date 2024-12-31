@@ -79,7 +79,18 @@ async function bootstrap() {
         ),
       )
       .setVersion(configService.get("SWAGGER_VERSION", "1.0"))
-      .addBearerAuth()
+      .addBearerAuth(
+        {
+          type: "http",
+          scheme: "bearer",
+          bearerFormat: "JWT",
+          name: "JWT",
+          description: "Enter JWT token",
+          in: "header",
+        },
+        "accessToken", // This name is used as the key for the Bearer token
+      )
+
       .addTag("Orders", "Order management endpoints")
       .addTag("Chat", "Real-time chat functionality")
       .addTag("Users", "User management")

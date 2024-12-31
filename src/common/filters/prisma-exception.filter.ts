@@ -3,14 +3,18 @@ import {
   Catch,
   ExceptionFilter,
   HttpStatus,
+  Logger,
 } from "@nestjs/common";
 import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
 
 @Catch(PrismaClientKnownRequestError)
 export class PrismaExceptionFilter implements ExceptionFilter {
+  private readonly logger = new Logger(PrismaExceptionFilter.name);
+
   catch(exception: PrismaClientKnownRequestError, host: ArgumentsHost) {
     const ctx = host.switchToHttp();
     const response = ctx.getResponse();
+    const request = ctx.getRequest();
 
     let status = HttpStatus.INTERNAL_SERVER_ERROR;
     let message = "Database error occurred";
@@ -39,12 +43,32 @@ export class PrismaExceptionFilter implements ExceptionFilter {
         break;
     }
 
+    // Log the exception
+    this.logException(exception, request, status);
+
     response.status(status).json({
       statusCode: status,
       message,
       error,
       timestamp: new Date().toISOString(),
-      path: ctx.getRequest().url,
+      path: request.url,
     });
+  }
+
+  private logException(
+    exception: PrismaClientKnownRequestError,
+    request: Request,
+    status: number,
+  ): void {
+    this.logger.error(
+      `Prisma Error: ${exception.code} - ${exception.message}`,
+      exception.stack,
+      {
+        path: request.url,
+        method: request.method,
+        status,
+        timestamp: new Date().toISOString(),
+      },
+    );
   }
 }

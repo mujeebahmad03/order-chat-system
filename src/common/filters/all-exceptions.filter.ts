@@ -4,6 +4,7 @@ import {
   ArgumentsHost,
   HttpException,
   HttpStatus,
+  Logger,
 } from "@nestjs/common";
 import { HttpAdapterHost } from "@nestjs/core";
 import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
@@ -13,12 +14,17 @@ import { ErrorResponse } from "../interfaces";
 
 @Catch()
 export class AllExceptionsFilter implements ExceptionFilter {
+  private readonly logger = new Logger(AllExceptionsFilter.name);
+
   constructor(private readonly httpAdapterHost: HttpAdapterHost) {}
 
   catch(exception: unknown, host: ArgumentsHost): void {
     const { httpAdapter } = this.httpAdapterHost;
     const ctx = host.switchToHttp();
     const contextType = host.getType();
+
+    // Log the exception
+    this.logException(exception);
 
     // Handle WebSocket exceptions
     if (contextType === "ws") {
@@ -108,5 +114,29 @@ export class AllExceptionsFilter implements ExceptionFilter {
     }
 
     client.send(JSON.stringify(error));
+  }
+
+  private logException(exception: unknown): void {
+    if (exception instanceof HttpException) {
+      const response = exception.getResponse();
+      const message =
+        typeof response === "object" ? (response as any).message : response;
+      this.logger.error(
+        `HTTP Exception: ${exception.name} - ${message}`,
+        exception.stack,
+      );
+    } else if (exception instanceof PrismaClientKnownRequestError) {
+      this.logger.error(
+        `Prisma Error: ${exception.code} - ${exception.message}`,
+        exception.stack,
+      );
+    } else if (exception instanceof Error) {
+      this.logger.error(
+        `Unexpected Error: ${exception.message}`,
+        exception.stack,
+      );
+    } else {
+      this.logger.error(`Unknown Exception: ${JSON.stringify(exception)}`);
+    }
   }
 }
