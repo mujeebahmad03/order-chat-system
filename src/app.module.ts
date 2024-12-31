@@ -1,3 +1,4 @@
+import { CacheModule } from "@nestjs/cache-manager";
 import { Module } from "@nestjs/common";
 import { ConfigModule, ConfigService } from "@nestjs/config";
 import { LoggerModule } from "nestjs-pino";
@@ -12,6 +13,7 @@ import {
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }), // Load environment variables
+    CacheModule.register({ isGlobal: true }),
     LoggerModule.forRootAsync({
       imports: [ConfigModule], // Import ConfigModule
       useFactory: (configService: ConfigService) => ({
