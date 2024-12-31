@@ -1,4 +1,4 @@
-import { NestFactory } from "@nestjs/core";
+import { HttpAdapterHost, NestFactory } from "@nestjs/core";
 import { ConfigService } from "@nestjs/config";
 import { ValidationPipe } from "@nestjs/common";
 import { DocumentBuilder, SwaggerModule } from "@nestjs/swagger";
@@ -7,11 +7,19 @@ import helmet from "helmet";
 import { Logger } from "nestjs-pino";
 
 import { AppModule } from "./app.module";
+import {
+  AllExceptionsFilter,
+  HttpExceptionFilter,
+  PrismaExceptionFilter,
+  ValidationExceptionFilter,
+} from "./common/filters";
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
   const configService = app.get(ConfigService);
+
+  const httpAdapterHost = app.get(HttpAdapterHost);
 
   // Security Headers
   app.use(helmet());
@@ -28,6 +36,14 @@ async function bootstrap() {
 
   // Setup Pino logger
   app.useLogger(app.get(Logger));
+
+  // Global Exception Filters
+  app.useGlobalFilters(
+    new AllExceptionsFilter(httpAdapterHost),
+    new HttpExceptionFilter(),
+    new PrismaExceptionFilter(),
+    new ValidationExceptionFilter(),
+  );
 
   // Enable Global Validation Pipe
   app.useGlobalPipes(
@@ -66,6 +82,13 @@ async function bootstrap() {
 
   await app.listen(port);
 
-  console.log(`Application is running on: http://localhost:${port}`);
+  console.log(`
+    🚀 Application is running on: http://localhost:${port}
+    📝 API Documentation: http://localhost:${port}/docs
+      `);
 }
-bootstrap();
+
+bootstrap().catch((error) => {
+  console.error("Failed to start application:", error);
+  process.exit(1);
+});
