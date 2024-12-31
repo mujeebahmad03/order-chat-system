@@ -26,7 +26,6 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
         id: true,
         email: true,
         role: true,
-        // Add any other fields you need
       },
     });
 
