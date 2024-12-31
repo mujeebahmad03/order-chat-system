@@ -1,7 +1,5 @@
-export interface ErrorResponse {
-  statusCode: number;
-  message: string | string[];
-  error: string;
-  timestamp: string;
-  path: string;
-}
+import { ApiResponseType } from "./api-response.interface";
+import { ErrorResponse } from "./error-response.interface";
+import { PaginatedResponse } from "./paginated-response.interface";
+
+export { ApiResponseType, ErrorResponse, PaginatedResponse };

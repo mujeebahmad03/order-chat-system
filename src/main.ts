@@ -13,6 +13,7 @@ import {
   PrismaExceptionFilter,
   ValidationExceptionFilter,
 } from "./common/filters";
+import { TransformInterceptor } from "./common/interceptors";
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -45,6 +46,9 @@ async function bootstrap() {
     new ValidationExceptionFilter(),
   );
 
+  // Global Response Interceptor
+  app.useGlobalInterceptors(new TransformInterceptor());
+
   // Enable Global Validation Pipe
   app.useGlobalPipes(
     new ValidationPipe({
@@ -53,6 +57,10 @@ async function bootstrap() {
       forbidNonWhitelisted: true,
       transformOptions: {
         enableImplicitConversion: true,
+      },
+      exceptionFactory: (errors) => {
+        // This will be caught by ValidationExceptionFilter
+        return errors;
       },
     }),
   );
@@ -72,10 +80,21 @@ async function bootstrap() {
       )
       .setVersion(configService.get("SWAGGER_VERSION", "1.0"))
       .addBearerAuth()
+      .addTag("Orders", "Order management endpoints")
+      .addTag("Chat", "Real-time chat functionality")
+      .addTag("Users", "User management")
       .build();
 
     const document = SwaggerModule.createDocument(app, config);
-    SwaggerModule.setup("docs", app, document);
+
+    // Add custom response examples to Swagger
+    SwaggerModule.setup("docs", app, document, {
+      swaggerOptions: {
+        persistAuthorization: true,
+        tagsSorter: "alpha",
+        operationsSorter: "alpha",
+      },
+    });
   }
 
   const port = configService.get("PORT", 8000);
