@@ -3,5 +3,5 @@ export interface ErrorResponse {
   message: string | string[];
   error: string;
   timestamp: string;
-  path: string;
+  path?: string;
 }

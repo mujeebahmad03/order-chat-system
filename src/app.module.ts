@@ -9,6 +9,7 @@ import {
   PrismaModule,
   UsersModule,
 } from "./modules";
+import { ExceptionHelperModule } from "./common/exceptions";
 
 @Module({
   imports: [
@@ -31,6 +32,7 @@ import {
 
       inject: [ConfigService], // Inject ConfigService for dynamic configuration
     }),
+    ExceptionHelperModule,
     AuthModule,
     UsersModule,
     OrdersModule,

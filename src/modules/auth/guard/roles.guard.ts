@@ -1,17 +1,16 @@
-import {
-  Injectable,
-  CanActivate,
-  ExecutionContext,
-  ForbiddenException,
-} from "@nestjs/common";
+import { Injectable, CanActivate, ExecutionContext } from "@nestjs/common";
 import { Reflector } from "@nestjs/core";
 import { UserRole } from "@prisma/client";
 import { ROLES_KEY } from "../decorators";
 import { RequestWithUser } from "../interfaces";
+import { ExceptionHelperService } from "src/common/exceptions";
 
 @Injectable()
 export class RolesGuard implements CanActivate {
-  constructor(private reflector: Reflector) {}
+  constructor(
+    private reflector: Reflector,
+    private readonly exceptionHelper: ExceptionHelperService,
+  ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const requiredRoles = this.reflector.getAllAndOverride<UserRole[]>(
@@ -24,21 +23,22 @@ export class RolesGuard implements CanActivate {
       return true;
     }
 
-    const { user } = context.switchToHttp().getRequest<RequestWithUser>();
+    const request = context.switchToHttp().getRequest<RequestWithUser>();
+    const { user, path } = request;
 
     // If no user is present, deny access
     if (!user) {
-      throw new ForbiddenException("No user found in request");
+      this.exceptionHelper.throwForbiddenException("No user found ", path);
     }
 
     const hasRole = requiredRoles.includes(user.role as UserRole);
 
+    // If the user does not have the required role, deny access
     if (!hasRole) {
-      throw new ForbiddenException(
-        `User with role ${user.role} does not have required role(s): ${requiredRoles.join(
-          ", ",
-        )}`,
-      );
+      const message = `User with role ${user.role} does not have required role(s): ${requiredRoles.join(
+        ", ",
+      )}`;
+      this.exceptionHelper.throwForbiddenException(message, path);
     }
 
     return true;

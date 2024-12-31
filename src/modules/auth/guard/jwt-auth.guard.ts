@@ -1,19 +1,18 @@
-import {
-  Injectable,
-  ExecutionContext,
-  UnauthorizedException,
-  Logger,
-} from "@nestjs/common";
+import { Injectable, ExecutionContext, Logger } from "@nestjs/common";
 import { AuthGuard } from "@nestjs/passport";
 import { Reflector } from "@nestjs/core";
 import { Observable } from "rxjs";
 import { IS_PUBLIC_KEY } from "../decorators";
 import { JwtPayload } from "../interfaces";
+import { ExceptionHelperService } from "src/common/exceptions";
 
 @Injectable()
 export class JwtAuthGuard extends AuthGuard("jwt") {
   private readonly logger = new Logger(JwtAuthGuard.name);
-  constructor(private reflector: Reflector) {
+  constructor(
+    private reflector: Reflector,
+    private readonly exceptionHelper: ExceptionHelperService,
+  ) {
     super();
   }
 
@@ -51,13 +50,7 @@ export class JwtAuthGuard extends AuthGuard("jwt") {
       const path = request.url;
 
       // Throw an UnauthorizedException with a structure matching ErrorResponse
-      throw new UnauthorizedException({
-        statusCode: 401,
-        message,
-        error: "Unauthorized",
-        timestamp: new Date().toISOString(),
-        path,
-      });
+      this.exceptionHelper.throwUnauthorizedException(message, path);
     }
     return user;
   }
