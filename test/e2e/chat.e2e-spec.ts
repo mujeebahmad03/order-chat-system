@@ -1,10 +1,11 @@
 import { Test, TestingModule } from "@nestjs/testing";
 import { INestApplication, ValidationPipe } from "@nestjs/common";
+import { UserRole, OrderStatus } from "@prisma/client";
 import * as request from "supertest";
 import { io, Socket } from "socket.io-client";
+
 import { AppModule } from "src/app.module";
 import { PrismaService } from "src/modules/prisma/prisma.service";
-import { UserRole, OrderStatus } from "@prisma/client";
 import { CreateOrderDto } from "src/modules/orders/dto";
 
 describe("Chat Integration Tests", () => {
