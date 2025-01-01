@@ -68,10 +68,6 @@ async function bootstrap() {
       transformOptions: {
         enableImplicitConversion: true,
       },
-      exceptionFactory: (errors) => {
-        // This will be caught by ValidationExceptionFilter
-        return errors;
-      },
     }),
   );
 

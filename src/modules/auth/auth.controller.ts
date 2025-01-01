@@ -1,4 +1,13 @@
-import { Body, Controller, Post, Req, Res, UseGuards } from "@nestjs/common";
+import {
+  Body,
+  Controller,
+  HttpCode,
+  HttpStatus,
+  Post,
+  Req,
+  Res,
+  UseGuards,
+} from "@nestjs/common";
 import {
   ApiBearerAuth,
   ApiConflictResponse,
@@ -23,20 +32,23 @@ export class AuthController {
   @ApiOperation({ summary: "Register new user" })
   @ApiCreatedResponse({ description: "User successfully registered" })
   @ApiConflictResponse({ description: "User already exists" })
-  register(@Body() dto: RegisterDto) {
-    return this.authService.register(dto);
+  async register(@Body() dto: RegisterDto) {
+    return await this.authService.register(dto);
   }
 
   @Public()
   @Post("login")
+  @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: "User login" })
   @ApiOkResponse({ description: "User successfully logged in" })
   @ApiUnauthorizedResponse({ description: "Invalid credentials" })
-  login(@Body() dto: LoginDto, @Res() res: Response) {
-    return this.authService.login(dto, res);
+  async login(@Body() dto: LoginDto, @Res() res: Response): Promise<void> {
+    console.log("dto", dto);
+    await this.authService.login(dto, res);
   }
 
   @UseGuards(JwtAuthGuard)
+  @HttpCode(HttpStatus.OK)
   @Post("logout")
   @ApiBearerAuth("accessToken")
   @ApiOperation({ summary: "User logout" })
@@ -46,6 +58,7 @@ export class AuthController {
   }
 
   @Public()
+  @HttpCode(HttpStatus.OK)
   @Post("refresh")
   @ApiOperation({ summary: "Refresh access token" })
   @ApiOkResponse({ description: "Access token successfully refreshed" })

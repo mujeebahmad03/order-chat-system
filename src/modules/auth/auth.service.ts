@@ -9,7 +9,6 @@ import { Tokens } from "./interfaces";
 import { PrismaService } from "../prisma/prisma.service";
 import { ExceptionHelperService } from "src/common/exceptions";
 import { hashPassword, verifyPassword } from "src/common/helpers";
-import { AuthResponse } from "./entities";
 
 @Injectable()
 export class AuthService {
@@ -49,7 +48,7 @@ export class AuthService {
     return { message: "User registered successfully", user };
   }
 
-  async login(data: LoginDto, res: Response): Promise<AuthResponse> {
+  async login(data: LoginDto, res: Response) {
     const { email, password } = data;
 
     const user = await this.prisma.user.findUnique({ where: { email } });
@@ -73,12 +72,13 @@ export class AuthService {
 
     delete user.password;
 
-    return { user, accessToken };
+    // Send the response
+    res.json({ user, accessToken });
   }
 
   logout(res: Response) {
     res.clearCookie("refreshToken");
-    return { message: "Logged out successfully" };
+    return res.send({ message: "Logged out successfully" });
   }
 
   async refreshTokens(refreshToken: string, res: Response) {
@@ -117,7 +117,8 @@ export class AuthService {
     // Set the new refresh token in an HTTP-only cookie
     this.setRefreshTokenCookie(res, newRefreshToken);
 
-    return { accessToken };
+    // Send the new access token as the response
+    res.json({ accessToken });
   }
 
   private async generateTokens(
@@ -151,9 +152,12 @@ export class AuthService {
   setRefreshTokenCookie(res: Response, refreshToken: string) {
     res.cookie("refreshToken", refreshToken, {
       httpOnly: true,
-      secure: this.configService.get<string>("NODE_ENV") === "production",
+      secure:
+        this.configService.getOrThrow<string>("NODE_ENV") === "production",
       sameSite: "strict",
-      maxAge: this.configService.get<number>("JWT_REFRESH_EXPIRATION_MS"),
+      maxAge: this.configService.getOrThrow<number>(
+        "JWT_REFRESH_EXPIRATION_MS",
+      ),
     });
   }
 }

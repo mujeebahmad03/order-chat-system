@@ -5,9 +5,8 @@ import {
   IsString,
   MinLength,
   MaxLength,
-  Validate,
 } from "class-validator";
-import { PasswordStrengthValidator } from "src/common/helpers";
+import { IsStrongPassword } from "src/common/decorators";
 
 export class RegisterDto {
   @ApiProperty({
@@ -45,8 +44,6 @@ export class RegisterDto {
   @IsNotEmpty({ message: "Password is required" })
   @MinLength(8, { message: "Password must be at least 8 characters long" })
   @MaxLength(20, { message: "Password cannot exceed 20 characters" })
-  @Validate(PasswordStrengthValidator, {
-    message: "Password does not meet the required strength criteria",
-  })
+  @IsStrongPassword()
   password: string;
 }
