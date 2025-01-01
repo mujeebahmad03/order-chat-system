@@ -3,7 +3,6 @@ import { OrderStatus, UserRole } from "@prisma/client";
 
 import { CreateOrderDto, UpdateOrderDto, UpdateOrderStatusDto } from "./dto";
 import { OrderEntity } from "./entities/order.entity";
-import { ChatService } from "../chat/chat.service";
 import { PrismaService } from "../prisma/prisma.service";
 import { PaginationDto } from "src/common/dto";
 import { ExceptionHelperService } from "src/common/exceptions";
@@ -14,30 +13,22 @@ export class OrdersService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly exceptionHelper: ExceptionHelperService,
-    private readonly chatService: ChatService,
   ) {}
 
   async create(
     userId: string,
     createOrderDto: CreateOrderDto,
   ): Promise<OrderEntity> {
-    // Create order with initial REVIEW status
-    const order = await this.prisma.$transaction(async (prisma) => {
-      const newOrder = await prisma.order.create({
-        data: {
-          ...createOrderDto,
-          userId,
-          status: OrderStatus.REVIEW,
-        },
-      });
-
-      // Automatically create chat room for the order
-      await this.chatService.createChatRoom(newOrder.id);
-
-      return newOrder;
+    const newOrder = await this.prisma.order.create({
+      data: {
+        ...createOrderDto,
+        userId,
+        status: OrderStatus.REVIEW,
+        chatRoom: { create: {} },
+      },
     });
 
-    return order;
+    return newOrder;
   }
 
   async findAll(

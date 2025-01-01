@@ -37,12 +37,6 @@ export class ChatService {
     return user.orders.some((order) => order.chatRoom?.id === chatRoomId);
   }
 
-  async createChatRoom(orderId: string) {
-    return this.prisma.chatRoom.create({
-      data: { orderId, isOpen: true },
-    });
-  }
-
   async getRoomHistory(chatRoomId: string): Promise<ChatRoomResponse> {
     const chatRoom = await this.prisma.chatRoom.findUnique({
       where: { id: chatRoomId },

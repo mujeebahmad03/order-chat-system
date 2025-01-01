@@ -38,7 +38,7 @@ import { PaginationDto } from "src/common/dto";
 export class OrdersController {
   constructor(private readonly ordersService: OrdersService) {}
 
-  @Post()
+  @Post("create")
   @ApiOperation({
     summary: "Create a new order",
     description: "This endpoint allows a user to create a new order.",
