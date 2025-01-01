@@ -47,7 +47,7 @@ model Order {
 model ChatRoom {
   id        String    @id @default(uuid())
   orderId   String    @unique
-  order     Order     @relation(fields: [orderId], references: [id])
+  order     Order     @relation(fields: [orderId], references: [id], onDelete: Cascade)
   messages  Message[]
   isOpen    Boolean   @default(true)
   summary   String?
@@ -62,7 +62,7 @@ model Message {
   id         String   @id @default(uuid())
   content    String
   chatRoomId String
-  chatRoom   ChatRoom @relation(fields: [chatRoomId], references: [id])
+  chatRoom   ChatRoom @relation(fields: [chatRoomId], references: [id], onDelete: Cascade)
   userId     String
   user       User     @relation(fields: [userId], references: [id])
   createdAt  DateTime @default(now())

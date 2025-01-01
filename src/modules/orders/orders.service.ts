@@ -19,6 +19,14 @@ export class OrdersService {
     userId: string,
     createOrderDto: CreateOrderDto,
   ): Promise<OrderEntity> {
+    const { quantity } = createOrderDto;
+
+    if (quantity <= 0) {
+      this.exceptionHelper.throwBadRequestException(
+        "Quantity must be greater than 0",
+      );
+    }
+
     const newOrder = await this.prisma.order.create({
       data: {
         ...createOrderDto,

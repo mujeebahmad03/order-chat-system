@@ -43,7 +43,6 @@ export class AuthController {
   @ApiOkResponse({ description: "User successfully logged in" })
   @ApiUnauthorizedResponse({ description: "Invalid credentials" })
   async login(@Body() dto: LoginDto, @Res() res: Response): Promise<void> {
-    console.log("dto", dto);
     await this.authService.login(dto, res);
   }
 

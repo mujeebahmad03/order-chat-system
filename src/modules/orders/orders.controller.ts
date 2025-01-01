@@ -39,6 +39,7 @@ export class OrdersController {
   constructor(private readonly ordersService: OrdersService) {}
 
   @Post("create")
+  @Roles(UserRole.REGULAR)
   @ApiOperation({
     summary: "Create a new order",
     description: "This endpoint allows a user to create a new order.",
