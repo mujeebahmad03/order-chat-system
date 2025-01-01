@@ -9,6 +9,7 @@ import { Tokens } from "./interfaces";
 import { PrismaService } from "../prisma/prisma.service";
 import { ExceptionHelperService } from "src/common/exceptions";
 import { hashPassword, verifyPassword } from "src/common/helpers";
+import { AuthResponse } from "./entities";
 
 @Injectable()
 export class AuthService {
@@ -48,7 +49,7 @@ export class AuthService {
     return { message: "User registered successfully", user };
   }
 
-  async login(data: LoginDto, res: Response) {
+  async login(data: LoginDto, res: Response): Promise<AuthResponse> {
     const { email, password } = data;
 
     const user = await this.prisma.user.findUnique({ where: { email } });
@@ -72,7 +73,7 @@ export class AuthService {
 
     delete user.password;
 
-    return res.json({ user, accessToken });
+    return { user, accessToken };
   }
 
   logout(res: Response) {
