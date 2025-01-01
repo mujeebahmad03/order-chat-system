@@ -1,5 +1,5 @@
 import { CacheModule } from "@nestjs/cache-manager";
-import { Module } from "@nestjs/common";
+import { MiddlewareConsumer, Module } from "@nestjs/common";
 import { ConfigModule, ConfigService } from "@nestjs/config";
 import { LoggerModule } from "nestjs-pino";
 import {
@@ -10,11 +10,16 @@ import {
   UsersModule,
 } from "./modules";
 import { ExceptionHelperModule } from "./common/exceptions";
+import { LoggerMiddleware } from "./common/middleware";
 
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }), // Load environment variables
-    CacheModule.register({ isGlobal: true }),
+    CacheModule.register({
+      isGlobal: true,
+      ttl: 60 * 60, // 1 hour
+      max: 100, // maximum number of items in cache
+    }),
     LoggerModule.forRootAsync({
       imports: [ConfigModule], // Import ConfigModule
       useFactory: (configService: ConfigService) => ({
@@ -40,4 +45,8 @@ import { ExceptionHelperModule } from "./common/exceptions";
     PrismaModule,
   ],
 })
-export class AppModule {}
+export class AppModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer.apply(LoggerMiddleware).forRoutes("*");
+  }
+}

@@ -2,7 +2,9 @@ import { HttpAdapterHost, NestFactory } from "@nestjs/core";
 import { ConfigService } from "@nestjs/config";
 import { ValidationPipe } from "@nestjs/common";
 import { DocumentBuilder, SwaggerModule } from "@nestjs/swagger";
+import * as cookieParser from "cookie-parser";
 import * as compression from "compression";
+import { rateLimit } from "express-rate-limit";
 import helmet from "helmet";
 import { Logger } from "nestjs-pino";
 
@@ -13,7 +15,10 @@ import {
   PrismaExceptionFilter,
   ValidationExceptionFilter,
 } from "./common/filters";
-import { TransformInterceptor } from "./common/interceptors";
+import {
+  TransformInterceptor,
+  TimeoutInterceptor,
+} from "./common/interceptors";
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -27,6 +32,8 @@ async function bootstrap() {
 
   // Compression
   app.use(compression());
+
+  app.use(cookieParser());
 
   // CORS
   app.enableCors({
@@ -47,7 +54,10 @@ async function bootstrap() {
   );
 
   // Global Response Interceptor
-  app.useGlobalInterceptors(new TransformInterceptor());
+  app.useGlobalInterceptors(
+    new TransformInterceptor(),
+    new TimeoutInterceptor(),
+  );
 
   // Enable Global Validation Pipe
   app.useGlobalPipes(
@@ -107,6 +117,13 @@ async function bootstrap() {
       },
     });
   }
+
+  app.use(
+    rateLimit({
+      windowMs: 15 * 60 * 1000, // 15 minutes
+      max: 100, // limit each IP to 100 requests per windowMs
+    }),
+  );
 
   const port = configService.get("PORT", 8000);
 
