@@ -35,7 +35,7 @@ model Order {
   metadata       Json?
   status         OrderStatus @default(REVIEW)
   userId         String
-  user           User        @relation(fields: [userId], references: [id])
+  user           User        @relation(fields: [userId], references: [id], onDelete: Cascade)
   chatRoom       ChatRoom?
   createdAt      DateTime    @default(now())
   updatedAt      DateTime    @updatedAt
@@ -64,7 +64,7 @@ model Message {
   chatRoomId String
   chatRoom   ChatRoom @relation(fields: [chatRoomId], references: [id], onDelete: Cascade)
   userId     String
-  user       User     @relation(fields: [userId], references: [id])
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   createdAt  DateTime @default(now())
 
   @@index([chatRoomId])

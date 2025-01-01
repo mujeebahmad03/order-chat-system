@@ -6,6 +6,8 @@ import {
   Param,
   UseGuards,
   ParseUUIDPipe,
+  HttpCode,
+  HttpStatus,
 } from "@nestjs/common";
 import {
   ApiTags,
@@ -65,6 +67,7 @@ export class ChatController {
   }
 
   @Post("rooms/:id/close")
+  @HttpCode(HttpStatus.OK)
   @ApiOperation({
     summary: "Close chat room",
     description:

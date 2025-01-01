@@ -1,5 +1,8 @@
 import { Tokens } from "./tokens.interface";
 import { JwtPayload } from "./jwt-payload.interface";
-import { RequestWithUser } from "./request-with-user.interface";
+import {
+  RequestWithUser,
+  SocketIORequest,
+} from "./request-with-user.interface";
 
-export { JwtPayload, RequestWithUser, Tokens };
+export { JwtPayload, RequestWithUser, SocketIORequest, Tokens };

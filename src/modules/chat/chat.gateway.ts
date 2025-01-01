@@ -28,21 +28,25 @@ export class ChatGateway {
 
   async handleConnection(client: Socket) {
     try {
-      // Get token from handshake auth
-      const token = client.handshake.auth.token;
+      const authHeader = client.handshake.headers.authorization;
+      if (!authHeader) {
+        client.disconnect();
+        return;
+      }
+
+      const token = authHeader.replace("Bearer ", "");
       if (!token) {
         client.disconnect();
         return;
       }
 
-      // Verify and decode token (implement this based on your JWT setup)
       const user = await this.chatService.verifyToken(token);
       if (!user) {
+        console.error("Invalid or expired token");
         client.disconnect();
         return;
       }
 
-      // Store user data in socket
       client.data.user = user;
     } catch (error) {
       this.logger.warn(error);
@@ -56,6 +60,7 @@ export class ChatGateway {
     @MessageBody() chatRoomId: string,
   ) {
     const user = client.data.user;
+    console.log("RoomUser: ", user);
     const canAccess = await this.chatService.canAccessRoom(user.id, chatRoomId);
 
     if (!canAccess) {

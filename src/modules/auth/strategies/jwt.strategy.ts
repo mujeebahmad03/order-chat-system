@@ -10,7 +10,7 @@ import { ExtractJwt, Strategy } from "passport-jwt";
 import { ConfigService } from "@nestjs/config";
 import { Cache } from "cache-manager";
 
-import { JwtPayload } from "../interfaces";
+import { JwtPayload, SocketIORequest } from "../interfaces";
 import { PrismaService } from "src/modules/prisma/prisma.service";
 
 @Injectable()
@@ -22,7 +22,27 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
   ) {
     super({
-      jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
+      jwtFromRequest: ExtractJwt.fromExtractors([
+        (request: SocketIORequest) => {
+          if (request && request.headers && request.headers.authorization) {
+            console.log("Extracting token from HTTP headers");
+            return request.headers.authorization.replace("Bearer ", "");
+          }
+          if (
+            request &&
+            request.handshake &&
+            request.handshake.headers.authorization
+          ) {
+            console.log("Extracting token from WebSocket handshake headers");
+            return request.handshake.headers.authorization.replace(
+              "Bearer ",
+              "",
+            );
+          }
+          console.error("No token found in headers or handshake");
+          return null;
+        },
+      ]),
       ignoreExpiration: false,
       secretOrKey: configService.get<string>("JWT_SECRET"),
     });
